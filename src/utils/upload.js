@@ -84,21 +84,15 @@ router.post('/upload', upload.single('upload'), async (req, res) => {
 
             billingEntry = billingEntry.toObject();
 
-            const formattedStartDate = formatDate(billingEntry.start_date);
-            const formattedEndDate = formatDate(billingEntry.end_date);
+            billingEntry.start_date = formatDate(billingEntry.start_date);
+            billingEntry.end_date = formatDate(billingEntry.end_date);
+            billingEntry.account_name = billingEntry.account.account_name;
+            billingEntry.first_name = billingEntry.account.customer.first_name;
+            billingEntry.last_name = billingEntry.account.customer.last_name;
 
-            const formattedEntry = {
-                id: billingEntry._id,
-                billing_cycle: billingEntry.billing_cycle,
-                start_date: formattedStartDate,
-                end_date: formattedEndDate,
-                amount: billingEntry.amount,
-                account_name: billingEntry.account.account_name,
-                first_name: billingEntry.account.customer.first_name,
-                last_name: billingEntry.account.customer.last_name,
-            };
+            delete billingEntry.account;
 
-            billingEntries.push(formattedEntry);
+            billingEntries.push(billingEntry);
 
         } catch (error) {
             console.error('Error:', error);
