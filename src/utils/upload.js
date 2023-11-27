@@ -51,12 +51,14 @@ router.post('/upload', upload.single('upload'), async (req, res) => {
         // res.status(200).send({ message: 'File uploaded successfully!', fileContents: data });
 
     } catch (error) {
-        console.error('Error processing file:', error);
+        console.error(error);
         return res.status(500).send({ error: error.message });
     }
 
     let billingEntries = [];
 
+
+    // Loop through the data
     for (const record of data) {
         try {
             let billingEntry = await BillingModel.findOne({
@@ -108,7 +110,7 @@ router.post('/upload', upload.single('upload'), async (req, res) => {
             billingEntries.push(formattedBillingEntry);
 
         } catch (error) {
-            console.error('Error:', error);
+            console.error(error);
             return res.status(500).send({ error: error.message });
         }
     }
