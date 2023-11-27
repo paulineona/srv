@@ -19,7 +19,7 @@ const formatCsvData = (data) => {
         const [billingCycleStr, startDateStr, endDateStr] = line.split(',');
         const billingCycle = parseInt(billingCycleStr);
         if (isNaN(billingCycle) || billingCycle < 1 || billingCycle > 12) {
-            throw new Error(`Invalid billing cycle at row ${index + 1}`);
+            throw new Error("Invalid billing cycle");
         }
 
         // const startDate = new Date(startDateStr);
@@ -63,7 +63,7 @@ const formatTxtData = (data) => {
         const billingCycle = parseInt(billingCycleStr);
         // console.log(billingCycle);
         if (isNaN(billingCycle) || billingCycle < 1 || billingCycle > 12) {
-            throw new Error(`Invalid billing cycle at row ${index + 1}`);
+            throw new Error("Invalid billing cycle");
         }
         const restOfLine = line.substring(2);
         const startDateStr = restOfLine.substring(0, restOfLine.length / 2);
