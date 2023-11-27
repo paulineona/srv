@@ -3,18 +3,17 @@ const util = require('util');
 const readFile = util.promisify(fs.readFile)
 
 
-function adjustForTimezone(date) {
-    const timeOffsetInMS = date.getTimezoneOffset() * 60000;
-    date.setTime(date.getTime() - timeOffsetInMS);
+const adjustForTimezone = (date) => {
+    date.setTime(date.getTime() - date.getTimezoneOffset() * 60000);
     return date;
 }
 
-function formatCsvData(data) {
+const formatCsvData = (data) => {
     const lines = data.split('\n');
     return lines.map((line, index) => { // include index
         const [billingCycleStr, startDateStr, endDateStr] = line.split(',');
         const billingCycle = parseInt(billingCycleStr);
-        console.log(billingCycle);
+        // console.log(billingCycle);
         if (isNaN(billingCycle) || billingCycle < 1 || billingCycle > 12) {
             throw new Error(`Invalid billing cycle at row ${index + 1}`);
         }
@@ -36,22 +35,22 @@ function formatCsvData(data) {
     });
 }
 
-function formatTxtData(data) {
+const formatTxtData = (data) => {
     const lines = data.split('\n');
     return lines.map((line, index) => {
         line = line.replace(/\r/g, '').replace(/\s/g, '');
         console.log(line);
         const billingCycleStr = line.substring(0, 2);
         const billingCycle = parseInt(billingCycleStr);
-        console.log(billingCycle);
+        // console.log(billingCycle);
         if (isNaN(billingCycle) || billingCycle < 1 || billingCycle > 12) {
             throw new Error(`Invalid billing cycle at row ${index + 1}`);
         }
         const restOfLine = line.substring(2);
         const startDateStr = restOfLine.substring(0, restOfLine.length / 2);
-        console.log("start : " + startDateStr);
+        // console.log("start : " + startDateStr);
         const endDateStr = restOfLine.substring(restOfLine.length / 2);
-        console.log("end : " + endDateStr);
+        // console.log("end : " + endDateStr);
         // console.log('srtr' + startDateStr.length);
         // console.log('end' + endDateStr.length);
         if (startDateStr.length !== 8 || endDateStr.length !== 8) {
@@ -68,13 +67,13 @@ function formatTxtData(data) {
             billing_cycle: billingCycle,
             start_date: startDate.toISOString(),
             end_date: endDate.toISOString(),
-            // start_date: startDate.toISOString(), // 'en-CA' format is 'yyyy/mm/dd'
+            // start_date: startDate.toLocaleDateString('en-CA'), // 'en-CA' format is 'yyyy/mm/dd'
             // end_date: endDate.toLocaleDateString('en-CA'), // 'en-CA' format is 'yyyy/mm/dd'
         };
     });
 }
 
-async function readCsv(filePath) {
+const readCsv = async (filePath) => {
     try {
         const data = await readFile(filePath, 'utf8');
         const records = formatCsvData(data);
@@ -84,7 +83,7 @@ async function readCsv(filePath) {
     }
 }
 
-async function readTxt(filePath) {
+const readTxt = async (filePath) => {
     try {
         const data = await readFile(filePath, 'utf8');
         const records = formatTxtData(data);
