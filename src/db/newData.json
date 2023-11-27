@@ -1,0 +1,90 @@
+[
+    {
+      "billing_cycle": 1,
+      "billing_month": "January",
+      "amount": 7000,
+      "start_date": "2013-01-16T00:00:00.000Z",
+      "end_date": "2013-02-15T00:00:00.000Z",
+      "last_edited": "admin",
+      "account": {
+        "account_name": "AIRA FAUNA ANSAY",
+        "date_created": "2023-11-24T00:00:00.000Z",
+        "is_active": "Y",
+        "last_edited": "admin",
+        "customer": {
+          "first_name": "Aira Fauna",
+          "last_name": "Ansay",
+          "address": "Silang, Cavite",
+          "status": "Y",
+          "date_created": "2023-11-24T00:00:00.000Z",
+          "last_edited": "admin"
+        }
+      }
+    },
+    {
+      "billing_cycle": 1,
+      "billing_month": "January",
+      "amount": 15000,
+      "start_date": "2016-01-16T00:00:00.000Z",
+      "end_date": "2016-02-15T00:00:00.000Z",
+      "last_edited": "admin",
+      "account": {
+        "account_name": "STEPHEN ABAD",
+        "date_created": "2023-11-24T00:00:00.000Z",
+        "is_active": "Y",
+        "last_edited": "admin",
+        "customer": {
+          "first_name": "Stephen",
+          "last_name": "Abad",
+          "address": "Metro Manila",
+          "status": "Y",
+          "date_created": "2023-11-24T00:00:00.000Z",
+          "last_edited": "admin"
+        }
+      }
+    },
+    {
+      "billing_cycle": 2,
+      "billing_month": "February",
+      "amount": 10000,
+      "start_date": "2016-02-02T00:00:00.000Z",
+      "end_date": "2016-02-29T00:00:00.000Z",
+      "last_edited": "admin",
+      "account": {
+        "account_name": "STEPHEN ABAD",
+        "date_created": "2023-11-24T00:00:00.000Z",
+        "is_active": "Y",
+        "last_edited": "admin",
+        "customer": {
+          "first_name": "Stephen",
+          "last_name": "Abad",
+          "address": "Metro Manila",
+          "status": "Y",
+          "date_created": "2023-11-24T00:00:00.000Z",
+          "last_edited": "admin"
+        }
+      }
+    },
+    {
+      "billing_cycle": 2,
+      "billing_month": "January",
+      "amount": 25000,
+      "start_date": "2016-01-02T00:00:00.000Z",
+      "end_date": "2016-02-01T00:00:00.000Z",
+      "last_edited": "admin",
+      "account": {
+        "account_name": "DANIEL JEORGE BARRION",
+        "date_created": "2023-11-24T00:00:00.000Z",
+        "is_active": "Y",
+        "last_edited": "admin",
+        "customer": {
+          "first_name": "Daniel Jeorge",
+          "last_name": "Barrion",
+          "address": "Mandaluyong City",
+          "status": "Y",
+          "date_created": "2023-11-24T00:00:00.000Z",
+          "last_edited": "admin"
+        }
+      }
+    }
+  ]
