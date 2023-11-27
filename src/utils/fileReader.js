@@ -65,22 +65,31 @@ const formatTxtData = (data) => {
         if (isNaN(billingCycle) || billingCycle < 1 || billingCycle > 12) {
             throw new Error("Invalid billing cycle");
         }
-        const restOfLine = line.substring(2);
-        const startDateStr = restOfLine.substring(0, restOfLine.length / 2);
+        // const restOfLine = line.substring(2);
+        // const startDateStr = restOfLine.substring(0, restOfLine.length / 2);
         // console.log("start : " + startDateStr);
-        const endDateStr = restOfLine.substring(restOfLine.length / 2);
+        // const endDateStr = restOfLine.substring(restOfLine.length / 2);
         // console.log("end : " + endDateStr);
         // console.log('srtr' + startDateStr.length);
         // console.log('end' + endDateStr.length);
-        const startDate = adjustForTimezone(new Date(startDateStr.substring(4, 8), startDateStr.substring(0, 2) - 1, startDateStr.substring(2, 4)));
-        if (isNaN(startDate.getTime())) {
+        const startDateStr = restOfLine.substring(0, restOfLine.length / 2);
+        if (startDateStr.length < 8) {
             throw new Error(`Invalid start date format at row ${index + 1}`);
         }
 
-        const endDate = adjustForTimezone(new Date(endDateStr.substring(4, 8), endDateStr.substring(0, 2) - 1, endDateStr.substring(2, 4)));
-        if (isNaN(endDate.getTime())) {
+        const endDateStr = restOfLine.substring(restOfLine.length / 2);
+        if (endDateStr.length < 8) {
             throw new Error(`Invalid end date format at row ${index + 1}`);
         }
+        // const startDate = adjustForTimezone(new Date(startDateStr.substring(4, 8), startDateStr.substring(0, 2) - 1, startDateStr.substring(2, 4)));
+        // if (isNaN(startDate.getTime())) {
+        //     throw new Error(`Invalid start date format at row ${index + 1}`);
+        // }
+
+        // const endDate = adjustForTimezone(new Date(endDateStr.substring(4, 8), endDateStr.substring(0, 2) - 1, endDateStr.substring(2, 4)));
+        // if (isNaN(endDate.getTime())) {
+        //     throw new Error(`Invalid end date format at row ${index + 1}`);
+        // }
 
         console.log(`QUERY`);
         console.log({
