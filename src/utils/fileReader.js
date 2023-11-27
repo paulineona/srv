@@ -15,14 +15,14 @@ const formatCsvData = (data) => {
         const [billingCycleStr, startDateStr, endDateStr] = line.split(',');
         const billingCycle = parseInt(billingCycleStr);
         if (isNaN(billingCycle) || billingCycle < 1 || billingCycle > 12) {
-            throw new Error(`Invalid billing cycle at row ${index + 1}`);
+            throw new Error(`Error: Invalid billing cycle at row ${index + 1}`);
         }
         // const startDate = new Date(startDateStr);
         // const endDate = new Date(endDateStr);
         const startDate = adjustForTimezone(new Date(startDateStr));
         const endDate = adjustForTimezone(new Date(endDateStr));
         if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-            throw new Error(`Invalid date at row ${index + 1}`);
+            throw new Error(`Error: Invalid date at row ${index + 1}`);
         }
 
         console.log(`QUERY`);
@@ -49,7 +49,7 @@ const formatTxtData = (data) => {
         const billingCycle = parseInt(billingCycleStr);
         // console.log(billingCycle);
         if (isNaN(billingCycle) || billingCycle < 1 || billingCycle > 12) {
-            throw new Error(`Invalid billing cycle at row ${index + 1}`);
+            throw new Error(`Error: Invalid billing cycle at row ${index + 1}`);
         }
         const restOfLine = line.substring(2);
         const startDateStr = restOfLine.substring(0, restOfLine.length / 2);
@@ -59,12 +59,12 @@ const formatTxtData = (data) => {
         // console.log('srtr' + startDateStr.length);
         // console.log('end' + endDateStr.length);
         if (startDateStr.length !== 8 || endDateStr.length !== 8) {
-            throw new Error(`Invalid date format at row ${index + 1}`);
+            throw new Error(`Error: Invalid date at row ${index + 1}`);
         }
         const startDate = adjustForTimezone(new Date(startDateStr.substring(4, 8), startDateStr.substring(0, 2) - 1, startDateStr.substring(2, 4)));
         const endDate = adjustForTimezone(new Date(endDateStr.substring(4, 8), endDateStr.substring(0, 2) - 1, endDateStr.substring(2, 4)));
         if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-            throw new Error(`Invalid date at row ${index + 1}`);
+            throw new Error(`Error: Invalid date format at row ${index + 1}`);
         }
 
         console.log(`QUERY`);

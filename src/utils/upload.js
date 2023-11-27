@@ -52,7 +52,7 @@ router.post('/upload', upload.single('upload'), async (req, res) => {
 
     } catch (error) {
         console.error('Error processing file:', error);
-        res.status(500).send({ error: 'Error processing file' });
+        return res.status(500).send({ error: error.message });
     }
 
     let billingEntries = [];
@@ -109,7 +109,7 @@ router.post('/upload', upload.single('upload'), async (req, res) => {
 
         } catch (error) {
             console.error('Error:', error);
-            return res.status(500).send({ message: 'An error occurred.' });
+            return res.status(500).send({ error: error.message });
         }
     }
 
