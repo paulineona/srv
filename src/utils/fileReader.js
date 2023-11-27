@@ -9,6 +9,7 @@ const adjustForTimezone = (date) => {
 }
 
 const formatCsvData = (data) => {
+    console.log("==> INSIDE CSV PROCESSING <==");
     const lines = data.split('\n');
     return lines.map((line, index) => { // include index
         const [billingCycleStr, startDateStr, endDateStr] = line.split(',');
@@ -25,6 +26,13 @@ const formatCsvData = (data) => {
             throw new Error(`Invalid date at row ${index + 1}`);
         }
 
+        console.log(`QUERY`);
+        console.log({
+            billing_cycle: billingCycle,
+            start_date: startDate,
+            end_date: endDate
+        });
+
         return {
             billing_cycle: billingCycle,
             // start_date: startDate.toLocaleDateString('en-CA'), // 'en-CA' format is 'yyyy/mm/dd'
@@ -36,10 +44,10 @@ const formatCsvData = (data) => {
 }
 
 const formatTxtData = (data) => {
+    console.log("==> INSIDE TXT PROCESSING <==");
     const lines = data.split('\n');
     return lines.map((line, index) => {
         line = line.replace(/\r/g, '').replace(/\s/g, '');
-        console.log(line);
         const billingCycleStr = line.substring(0, 2);
         const billingCycle = parseInt(billingCycleStr);
         // console.log(billingCycle);
@@ -63,6 +71,14 @@ const formatTxtData = (data) => {
         if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
             throw new Error(`Invalid date at row ${index + 1}`);
         }
+
+        console.log(`QUERY`);
+        console.log({
+            billing_cycle: billingCycle,
+            start_date: startDate,
+            end_date: endDate
+        });
+
         return {
             billing_cycle: billingCycle,
             start_date: startDate.toISOString(),
