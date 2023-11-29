@@ -32,6 +32,8 @@ const upload = multer({ storage: storage, fileFilter: fileFilter });
 const formatDate = date => new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
 
 router.post('/upload', upload.single('file'), async (req, res) => {
+
+
     console.log('File Uploaded Successfully!');
 
     let data;
@@ -68,7 +70,8 @@ router.post('/upload', upload.single('file'), async (req, res) => {
         end_date: formatDate(entry.end_date),
     }));
 
-    console.log(dataLog);
+    // console.log(dataLog);
+    console.log(data);
 
     const billingEntries = [];
 
@@ -111,6 +114,11 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     }
 }, (error, req, res, next) => {
     res.status(400).send({ error: error.message });
+});
+
+router.post('*', (req, res) => {
+    console.log('Please input an existing request file path.');
+    res.status(404).send({ error: 'Please input an existing request file path.' });
 });
 
 module.exports = router;

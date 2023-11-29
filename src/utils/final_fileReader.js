@@ -20,8 +20,7 @@ const parseAndFormatDate = (dateString, filePath) => {
         fullDate = ' ';
     }
 
-    const dateObject = new Date(fullDate);
-    return isNaN(dateObject.getTime()) ? null : dateObject;
+    return isNaN(Date.parse(fullDate)) ? null : fullDate;
 };
 
 const readCsv = async (filePath, cb) => {
@@ -131,9 +130,5 @@ const readTxt = async (filePath, cb) => {
         cb(err);
     }
 }
-
-
-
-
 
 module.exports = { readCsv, readTxt };
