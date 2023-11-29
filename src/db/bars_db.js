@@ -1,17 +1,19 @@
 const mongodb = require("mongodb");
 const MongoClient = mongodb.MongoClient;
 const connectionURL = "mongodb://127.0.0.1:27017/";
-const databaseName = "bars_db";
+const databaseName = "bars_db_legit";
+
+const client = new MongoClient(connectionURL, {
+  useUnifiedTopology: true,
+  useUnifiedTopology: true
+});
 
 async function run() {
-  const client = new MongoClient(connectionURL, { useUnifiedTopology: true });
 
   try {
-    await client.connect();
-    console.log('Connected!');
-    const db = client.db(databaseName);
-
-    const documents = [
+    const database = client.db(databaseName);
+    const bars = database.collection("billings");
+    await bars.insertMany([
       {
         billing_cycle: 1,
         billing_month: "January",
@@ -99,23 +101,12 @@ async function run() {
             last_edited: "admin",
           },
         },
-      }
-    ];
-
-    const result = await db.collection('billings').insertMany(documents);
-
-    if (result && result.insertedCount > 0) {
-      console.log(`Inserted ${result.insertedCount} documents.`);
-      const insertedDocuments = await db.collection('billings').find({}).toArray();
-      console.log(insertedDocuments);
-    } else {
-      console.log('No documents were inserted');
-    }
-  } catch (error) {
-    console.error('An error occurred:', error);
+      },
+    ]);
+    console.log("DB Inserted Successfully!");
   } finally {
     await client.close();
   }
 }
 
-run().catch(console.dir);
+run();
