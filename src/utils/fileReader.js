@@ -1,134 +1,153 @@
 const fs = require('fs');
-const util = require('util');
-const readFile = util.promisify(fs.readFile)
+const readline = require('readline');
 
+const readCsv = async (filePath, cb) => {
+    console.log('==> INSIDE CSV PROCESSING <==');
 
-const adjustForTimezone = (date) => {
+    if (!filePath) {
+        cb(new Error('File Name is blank'));
+        return;
+    }
 
-    date.setTime(date.getTime() - date.getTimezoneOffset() * 60000);
-    return date;
-}
-
-const formatCsvData = (data) => {
-
-    console.log("==> INSIDE CSV PROCESSING <==");
-
-    const lines = data.split('\n');
-
-    return lines.map((line, index) => {
-        const [billingCycleStr, startDateStr, endDateStr] = line.split(',');
-        const billingCycle = parseInt(billingCycleStr);
-        if (isNaN(billingCycle) || billingCycle < 1 || billingCycle > 12) {
-            throw new Error("Invalid billing cycle");
-        }
-
-        // const startDate = new Date(startDateStr);
-        // const endDate = new Date(endDateStr);
-        const startDate = adjustForTimezone(new Date(startDateStr));
-        if (isNaN(startDate.getTime())) {
-            throw new Error(`Invalid start date format at row ${index + 1}`);
-        }
-
-        const endDate = adjustForTimezone(new Date(endDateStr));
-        if (isNaN(endDate.getTime())) {
-            throw new Error(`Invalid end date format at row ${index + 1}`);
-        }
-
-        console.log(`QUERY`);
-        console.log({
-            billing_cycle: billingCycle,
-            start_date: startDate,
-            end_date: endDate
-        });
-
-        return {
-            billing_cycle: billingCycle,
-            start_date: startDate.toISOString(),
-            end_date: endDate.toISOString(),
-        };
+    const file = readline.createInterface({
+        input: fs.createReadStream('./src/upload/' + filePath),
+        console: false
     });
-}
 
-const formatTxtData = (data) => {
+    let rowCount = 0;
+    const fileData = [];
 
-    console.log("==> INSIDE TXT PROCESSING <==");
-
-    const lines = data.split('\n');
-
-    return lines.map((line, index) => {
-
-        line = line.trim().split(/\s|\r/).join('');
-
-        const billingCycleStr = line.substring(0, 2);
-        const billingCycle = parseInt(billingCycleStr);
-        // console.log(billingCycle);
-        if (isNaN(billingCycle) || billingCycle < 1 || billingCycle > 12) {
-            throw new Error("Invalid billing cycle");
-        }
-        const restOfLine = line.substring(2);
-        // const startDateStr = restOfLine.substring(0, restOfLine.length / 2);
-        // console.log("start : " + startDateStr);
-        // const endDateStr = restOfLine.substring(restOfLine.length / 2);
-        // console.log("end : " + endDateStr);
-        // console.log('srtr' + startDateStr.length);
-        // console.log('end' + endDateStr.length);
-        const startDateStr = restOfLine.substring(0, restOfLine.length / 2);
-        if (startDateStr.length < 8) {
-            throw new Error(`Invalid start date format at row ${index + 1}`);
-        }
-
-        const endDateStr = restOfLine.substring(restOfLine.length / 2);
-        if (endDateStr.length < 8) {
-            throw new Error(`Invalid end date format at row ${index + 1}`);
-        }
-        // const startDate = adjustForTimezone(new Date(startDateStr.substring(4, 8), startDateStr.substring(0, 2) - 1, startDateStr.substring(2, 4)));
-        // if (isNaN(startDate.getTime())) {
-        //     throw new Error(`Invalid start date format at row ${index + 1}`);
-        // }
-
-        // const endDate = adjustForTimezone(new Date(endDateStr.substring(4, 8), endDateStr.substring(0, 2) - 1, endDateStr.substring(2, 4)));
-        // if (isNaN(endDate.getTime())) {
-        //     throw new Error(`Invalid end date format at row ${index + 1}`);
-        // }
-
-        console.log(`QUERY`);
-        console.log({
-            billing_cycle: billingCycle,
-            start_date: startDate,
-            end_date: endDate
-        });
-
-        return {
-            billing_cycle: billingCycle,
-            start_date: startDate.toISOString(),
-            end_date: endDate.toISOString(),
-            // start_date: startDate.toLocaleDateString('en-CA'), // 'en-CA' format is 'yyyy/mm/dd'
-            // end_date: endDate.toLocaleDateString('en-CA'), // 'en-CA' format is 'yyyy/mm/dd'
-        };
-    });
-}
-
-const readCsv = async (filePath) => {
     try {
-        const data = await readFile(filePath, 'utf8');
-        const records = formatCsvData(data);
-        return records;
-    } catch (error) {
-        throw error;
+        console.log('File Name: ' + filePath);
+
+        for await (const line of file) {
+            const data = line.split(',');
+
+            console.log("WHOLE DATAAA: " + data);
+
+            const billingCycle = parseInt(data[0]);
+            rowCount++;
+
+            if (billingCycle < 1 || billingCycle > 12) {
+                throw new Error(`ERROR: Billing Cycle not on range at row ${rowCount}.`);
+            }
+
+            const startDate = parseDate(data[1], filePath);
+            if (!startDate) {
+                throw new Error(`ERROR: Invalid Start Date format at row ${rowCount}.`);
+            }
+
+            const endDate = parseDate(data[2], filePath);
+            if (!endDate) {
+                throw new Error(`ERROR: Invalid End Date format at row ${rowCount}.`);
+            }
+
+            fileData.push({
+                'billing_cycle': billingCycle,
+                'start_date': startDate,
+                'end_date': endDate
+            });
+        }
+
+        if (!fileData.length) {
+            throw new Error('No request(s) to read from the input file.');
+        }
+
+        return fileData;
+    } catch (err) {
+        cb(err);
     }
 }
 
-const readTxt = async (filePath) => {
+
+const readTxt = async (filePath, cb) => {
+    console.log('==> INSIDE TXT PROCESSING <==');
+    if (filePath === '') {
+        return new Error('File Name is blank');
+    }
+
+    const file = readline.createInterface({
+        input: fs.createReadStream('./src/upload/' + filePath),
+        console: false
+    });
+
+    let rowCount = 0;
+    const fileData = [];
+
     try {
-        const data = await readFile(filePath, 'utf8');
-        const records = formatTxtData(data);
-        return records;
-    } catch (error) {
-        throw error;
+        console.log('File Name: ' + filePath);
+
+        for await (const line of file) {
+            const billingCycle = parseInt(line.substring(0, 2));
+            rowCount++;
+
+            if (billingCycle < 1 || billingCycle > 12) {
+                throw new Error(`ERROR: Billing Cycle not on range at row ${rowCount}.`);
+            }
+
+            const startDate = parseDate(line.substring(2, 10), filePath);
+            if (!startDate) {
+                throw new Error(`ERROR: Invalid Start Date format at row ${rowCount}.`);
+            }
+
+            const endDate = parseDate(line.substring(10, 18), filePath);
+            if (!endDate) {
+                throw new Error(`ERROR: Invalid End Date format at row ${rowCount}.`);
+            }
+
+            fileData.push({
+                'billing_cycle': billingCycle,
+                'start_date': startDate,
+                'end_date': endDate
+            });
+        }
+
+        if (!fileData.length) {
+            throw new Error('No request(s) to read from the input file.');
+        }
+
+        return fileData;
+    } catch (err) {
+        cb(err);
     }
 }
 
-module.exports = {
-    readCsv,
-    readTxt,
+
+const parseDate = (dateString, filePath) => {
+    const date = dateFormatCsvTxt(dateString, filePath);
+    const dateObject = new Date(date);
+    return isNaN(dateObject) ? null : dateObject;
 };
+
+const padZero = (num) => num.padStart(2, '0');
+
+const formatCsvDate = (date) => {
+    const [month, day, year] = date.split('/');
+    return `${year}-${padZero(month)}-${padZero(day)}`;
+};
+
+const formatTxtDate = (date) => {
+    const year = date.substring(4, 8);
+    console.log("year: " + year);
+    const month = padZero(date.substring(1, 2));
+    console.log("month: " + month);
+    const day = padZero(date.substring(2, 4));
+    console.log("date: " + day);
+    return `${year}-${month}-${day}`;
+};
+
+const dateFormatCsvTxt = (date, fileName) => {
+    let fullDate;
+
+    if (fileName.endsWith('.csv')) {
+        fullDate = formatCsvDate(date);
+    } else if (fileName.endsWith('.txt')) {
+        fullDate = formatTxtDate(date);
+        console.log("FULLDATE: " + fullDate);
+    }
+
+    return /^\d{4}-\d{2}-\d{2}$/.test(fullDate) ? fullDate : ' ';
+};
+
+
+module.exports = { readCsv, readTxt };

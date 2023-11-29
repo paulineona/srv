@@ -1,139 +1,109 @@
-const fs = require('fs');
-const readline = require('readline');
+const express = require('express');
+const multer = require('multer');
+const { readCsv, readTxt } = require('../utils/fileReader');
+const Billing = require('../model/billing');
+const router = express.Router();
 
-const readCsv = async (filePath, cb) => {
-    console.log('==> INSIDE CSV PROCESSING <==');
-    if (filePath === '') {
-        return new Error('File Name is blank');
-    }
+require('../db/mongoose');
 
-    const file = readline.createInterface({
-        input: fs.createReadStream('./src/upload/' + filePath),
-        console: false
-    });
+let fileName = '';
 
-    let rowCount = 0;
-    const fileData = [];
-
-    try {
-        console.log('File Name: ' + filePath);
-        for await (const line of file) {
-
-            const data = line.split(',');
-
-            const billingCycle = parseInt(data[0]);
-            rowCount++;
-
-            if (billingCycle < 1 || billingCycle > 12) {
-                return cb(new Error('ERROR: Billing Cycle not on range at row ' + rowCount + '.'));
-            }
-            const startDate = dateFormatCsvTxt(data[1], filePath);
-            const startDateformater = new Date(startDate);
-
-            if (isNaN(startDateformater)) {
-                return cb(new Error('ERROR: Invalid Start Date format at row ' + rowCount + '.'));
-            }
-            const endDate = dateFormatCsvTxt(data[2], filePath);
-            const endDateformater = new Date(endDate);
-            if (isNaN(endDateformater)) {
-                return cb(new Error('ERROR: Invalid End Date format at row ' + rowCount + '.'));
-            }
-
-            fileData.push({
-                'billing_cycle': billingCycle,
-                'start_date': startDateformater,
-                'end_date': endDateformater
-            });
-        }
-        if (fileData === null || fileData.length === 0 || fileData === undefined) {
-            return cb(new Error('No request(s) to read from the input file.'));
-        } else {
-            return fileData;
-        }
-    } catch (err) {
-        cb(err)
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype === 'text/csv' || file.mimetype === 'text/plain') {
+        cb(null, true);
+    } else {
+        console.log('File is not supported for processing!');
+        cb(new Error('File is not supported for processing!'), false);
     }
 }
 
-const readTxt = async (filePath, cb) => {
-    console.log('==> INSIDE TXT PROCESSING <==');
-    if (filePath === '') {
-        return new Error('File Name is blank');
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './src/upload');
+    },
+    filename: function (req, file, cb) {
+        fileName = file.originalname;
+        cb(null, file.originalname);
+    }
+});
+
+const upload = multer({ storage: storage, fileFilter: fileFilter });
+
+const formatDate = date => new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+
+router.post('/upload', upload.single('file'), async (req, res) => {
+    console.log('File Uploaded Successfully!');
+
+    let data;
+    let errorMessage = '';
+
+    if (req.file === undefined || req.file.size === 0) {
+        console.log('No request(s) to read from the input file');
+        return res.status(400).send({ error: 'No request(s) to read from the input file' });
     }
 
-    const file = readline.createInterface({
-        input: fs.createReadStream('./src/upload/' + filePath),
-        console: false
-    });
-
-    let rowCount = 0;
-    const fileData = [];
-
-    try {
-        console.log('File Name: ' + filePath);
-        for await (const line of file) {
-            const billingCycle = parseInt(line.substring(0, 2));
-            rowCount++;
-
-            if (billingCycle < 1 || billingCycle > 12) {
-                return cb(new Error('ERROR: Billing Cycle not on range at row ' + rowCount + '.'));
+    if (req.file.mimetype === 'text/csv') {
+        data = await readCsv(fileName, (err) => {
+            if (err) {
+                errorMessage = err.message;
             }
-
-            const startDate = dateFormatCsvTxt(line.substring(2, 10), filePath);
-            const startDateformater = new Date(startDate);
-            console.log("startdateform: " + startDateformater);
-            if (isNaN(startDateformater)) {
-                return cb(new Error('ERROR: Invalid Start Date format at row ' + rowCount + '.'));
+        });
+    } else if (req.file.mimetype === 'text/plain') {
+        data = await readTxt(fileName, (err) => {
+            if (err) {
+                errorMessage = err.message;
             }
+        });
+    }
 
-            const endDate = dateFormatCsvTxt(line.substring(10, 18), filePath);
-            const endDateformater = new Date(endDate);
-            if (isNaN(endDateformater)) {
-                return cb(new Error('ERROR: Invalid End Date format at row ' + rowCount + '.'));
+    if (errorMessage) {
+        console.log(errorMessage);
+        return res.status(400).send({ error: errorMessage });
+    }
+
+    console.log('==> Data from uploaded file <==');
+    console.log(data);
+    const billingEntries = [];
+
+    for await (const billing of data) {
+        try {
+            const record = await Billing.findOne(billing);
+            if (record) {
+                const formattedBillingEntry = {
+                    id: record._id,
+                    billing_cycle: record.billing_cycle,
+                    start_date: formatDate(record.start_date),
+                    end_date: formatDate(record.end_date),
+                    amount: record.amount,
+                    account_name: record.account.account_name,
+                    first_name: record.account.customer.first_name,
+                    last_name: record.account.customer.last_name,
+
+                };
+                billingEntries.push(formattedBillingEntry)
+                console.log('==> Query Log From Database <==');
+                console.log(record);
             }
-
-            fileData.push({
-                'billing_cycle': billingCycle,
-                'start_date': startDateformater,
-                'end_date': endDateformater
-            });
+        } catch (error) {
+            res.send({ error: error.message });
         }
-
-        if (fileData === null || fileData.length === 0 || fileData === undefined) {
-            return cb(new Error('No request(s) to read from the input file.'));
-        } else {
-            return fileData;
-        }
-    } catch (err) {
-        cb(err)
-    }
-}
-
-const padZero = (num) => num.padStart(2, '0');
-
-const formatCsvDate = (date) => {
-    const [month, day, year] = date.split('/');
-    return `${year}-${padZero(month)}-${padZero(day)}`;
-};
-
-const formatTxtDate = (date) => {
-    const year = date.substring(4, 8);
-    const month = padZero(date.substring(1, 2));
-    const day = padZero(date.substring(2, 4));
-    return `${year}-${month}-${day}`;
-};
-
-const dateFormatCsvTxt = (date, fileName) => {
-    let fullDate;
-
-    if (fileName.endsWith('.csv')) {
-        fullDate = formatCsvDate(date);
-    } else if (fileName.endsWith('.txt')) {
-        fullDate = formatTxtDate(date);
     }
 
-    return /^\d{4}-\d{2}-\d{2}$/.test(fullDate) ? fullDate : ' ';
-};
+    if (!billingEntries || billingEntries.length === 0) {
+        console.log('No record(s) to write to the output file. No Record Found!');
+        res.send({ message: 'No Record Found!' });
+    } else {
+        console.log('==> Display Final Data <==');
+        console.log('Successfully processed Request File');
+        console.log(billingEntries);
+        res.send({
+            message: 'Successfully processed Request File',
+            count: billingEntries.length,
+            data: billingEntries
+        });
+    }
+}, (error, req, res, next) => {
+    res.status(400).send({ error: error.message });
+});
 
-
-module.exports = { readCsv, readTxt };
+module.exports = router;
