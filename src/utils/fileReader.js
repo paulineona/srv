@@ -65,7 +65,7 @@ const formatTxtData = (data) => {
         if (isNaN(billingCycle) || billingCycle < 1 || billingCycle > 12) {
             throw new Error("Invalid billing cycle");
         }
-        // const restOfLine = line.substring(2);
+        const restOfLine = line.substring(2);
         // const startDateStr = restOfLine.substring(0, restOfLine.length / 2);
         // console.log("start : " + startDateStr);
         // const endDateStr = restOfLine.substring(restOfLine.length / 2);
